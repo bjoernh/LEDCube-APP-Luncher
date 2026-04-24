@@ -3,6 +3,7 @@
 #include "internal.hpp"
 
 #include <initializer_list>
+#include <cstring>
 
 namespace cube {
 
@@ -48,42 +49,93 @@ void on_item_click(lv_event_t* e) {
     mock_app_open(kEntries[idx].label, s_keypad, return_to_settings);
 }
 
+void on_brightness_event(lv_event_t* e) {
+    auto* slider = static_cast<lv_obj_t*>(lv_event_get_target(e));
+    auto* lbl    = lv_obj_get_child(slider, 0);
+    if (!lbl) return;
+
+    lv_event_code_t code = lv_event_get_code(e);
+    if (code == LV_EVENT_VALUE_CHANGED) {
+        int32_t val = lv_slider_get_value(slider);
+        int32_t snapped;
+        if (val % 10 == 1) snapped = ((val / 10) * 10) + 10;
+        else if (val % 10 == 9) snapped = (val / 10) * 10;
+        else snapped = ((val + 5) / 10) * 10;
+
+        if (snapped < 0) snapped = 0;
+        if (snapped > 100) snapped = 100;
+
+        lv_slider_set_value(slider, snapped, LV_ANIM_OFF);
+        lv_label_set_text_fmt(lbl, "%d", snapped);
+    } else if (code == LV_EVENT_FOCUSED) {
+        lv_label_set_text_fmt(lbl, "BRI..: %d", lv_slider_get_value(slider));
+    } else if (code == LV_EVENT_DEFOCUSED) {
+        lv_label_set_text(lbl, "BRIGHTNESS");
+    }
+}
+
 lv_obj_t* make_entry(lv_obj_t* parent, const SettingsEntry& entry, int idx) {
-    lv_obj_t* btn = lv_button_create(parent);
-    lv_obj_set_size(btn, kScreenW, kItemH);
-    lv_obj_set_style_pad_all(btn, 0, LV_PART_MAIN);
-    lv_obj_set_style_radius(btn, 0, LV_PART_MAIN);
+    bool is_brightness = (strcmp(entry.label, "Brightness") == 0);
+    lv_obj_t* item = is_brightness ? lv_slider_create(parent) : lv_button_create(parent);
+
+    lv_obj_set_size(item, kScreenW, kItemH);
+    lv_obj_set_style_pad_all(item, 0, LV_PART_MAIN);
+    lv_obj_set_style_radius(item, 0, LV_PART_MAIN);
+
+    if (is_brightness) {
+        lv_slider_set_range(item, 0, 100);
+        lv_slider_set_value(item, 50, LV_ANIM_OFF);
+        lv_obj_set_style_bg_color(item, lv_color_hex(0x333333), LV_PART_MAIN);
+        lv_obj_set_style_bg_opa(item, LV_OPA_COVER, LV_PART_MAIN);
+        lv_obj_set_style_bg_color(item, color_title(), LV_PART_INDICATOR);
+        lv_obj_set_style_bg_opa(item, LV_OPA_COVER, LV_PART_INDICATOR);
+        lv_obj_set_style_radius(item, 0, LV_PART_INDICATOR);
+        lv_obj_set_style_bg_opa(item, LV_OPA_TRANSP, LV_PART_KNOB);
+    }
+
     for (lv_state_t st : {LV_STATE_DEFAULT, LV_STATE_PRESSED,
                           LV_STATE_FOCUSED, LV_STATE_FOCUS_KEY}) {
-        lv_obj_set_style_border_width(btn, 0, LV_PART_MAIN | st);
-        lv_obj_set_style_shadow_width(btn, 0, LV_PART_MAIN | st);
-        lv_obj_set_style_outline_width(btn, 0, LV_PART_MAIN | st);
-        lv_obj_set_style_outline_pad(btn, 0, LV_PART_MAIN | st);
-        lv_obj_set_style_bg_opa(btn, LV_OPA_TRANSP, LV_PART_MAIN | st);
+        if (!is_brightness) {
+            lv_obj_set_style_bg_opa(item, LV_OPA_TRANSP, LV_PART_MAIN | st);
+        }
+        lv_obj_set_style_border_width(item, 0, LV_PART_MAIN | st);
+        lv_obj_set_style_shadow_width(item, 0, LV_PART_MAIN | st);
+        lv_obj_set_style_outline_width(item, 0, LV_PART_MAIN | st);
+        lv_obj_set_style_outline_pad(item, 0, LV_PART_MAIN | st);
     }
     for (lv_state_t st : {LV_STATE_FOCUSED, LV_STATE_FOCUS_KEY}) {
-        lv_obj_set_style_border_width(btn, 1, LV_PART_MAIN | st);
-        lv_obj_set_style_border_color(btn, color_title(), LV_PART_MAIN | st);
-        lv_obj_set_style_border_side(btn,
+        lv_obj_set_style_border_width(item, 1, LV_PART_MAIN | st);
+        lv_obj_set_style_border_color(item, color_title(), LV_PART_MAIN | st);
+        lv_obj_set_style_border_side(item,
                                      static_cast<lv_border_side_t>(
                                          LV_BORDER_SIDE_TOP | LV_BORDER_SIDE_BOTTOM),
                                      LV_PART_MAIN | st);
-        lv_obj_set_style_border_opa(btn, LV_OPA_COVER, LV_PART_MAIN | st);
+        lv_obj_set_style_border_opa(item, LV_OPA_COVER, LV_PART_MAIN | st);
     }
-    lv_obj_remove_flag(btn, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_remove_flag(item, LV_OBJ_FLAG_SCROLLABLE);
 
-    lv_obj_t* lbl = lv_label_create(btn);
+    lv_obj_t* lbl = lv_label_create(item);
     lv_obj_set_style_text_font(lbl, &lv_font_cube_6px, LV_PART_MAIN);
     lv_obj_set_style_text_color(lbl, color_text(), LV_PART_MAIN);
-    lv_label_set_text(lbl, entry.label);
+    if (is_brightness) {
+        lv_label_set_text(lbl, "BRIGHTNESS");
+    } else {
+        lv_label_set_text(lbl, entry.label);
+    }
     lv_obj_set_style_pad_all(lbl, 0, LV_PART_MAIN);
     lv_obj_set_height(lbl, kTitleH);
     lv_obj_center(lbl);
 
-    lv_obj_set_user_data(btn, reinterpret_cast<void*>(static_cast<intptr_t>(idx)));
-    lv_obj_add_event_cb(btn, on_item_click, LV_EVENT_CLICKED, nullptr);
-    lv_obj_add_event_cb(btn, on_item_key, LV_EVENT_KEY, nullptr);
-    return btn;
+    lv_obj_set_user_data(item, reinterpret_cast<void*>(static_cast<intptr_t>(idx)));
+    if (is_brightness) {
+        lv_obj_add_event_cb(item, on_brightness_event, LV_EVENT_VALUE_CHANGED, nullptr);
+        lv_obj_add_event_cb(item, on_brightness_event, LV_EVENT_FOCUSED, nullptr);
+        lv_obj_add_event_cb(item, on_brightness_event, LV_EVENT_DEFOCUSED, nullptr);
+    } else {
+        lv_obj_add_event_cb(item, on_item_click, LV_EVENT_CLICKED, nullptr);
+    }
+    lv_obj_add_event_cb(item, on_item_key, LV_EVENT_KEY, nullptr);
+    return item;
 }
 
 } // namespace

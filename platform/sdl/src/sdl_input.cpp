@@ -15,8 +15,8 @@ uint32_t map_key(SDL_Keycode k) {
         // just be forwarded to the focused widget and do nothing here.
         case SDLK_UP:     return LV_KEY_PREV;
         case SDLK_DOWN:   return LV_KEY_NEXT;
-        case SDLK_LEFT:   return LV_KEY_ESC;
-        case SDLK_RIGHT:  return LV_KEY_ENTER;
+        case SDLK_LEFT:   return LV_KEY_LEFT;
+        case SDLK_RIGHT:  return LV_KEY_RIGHT;
         case SDLK_RETURN: return LV_KEY_ENTER;
         case SDLK_ESCAPE: return LV_KEY_ESC;
         default:          return 0;
