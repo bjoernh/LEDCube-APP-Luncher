@@ -26,4 +26,13 @@ void mock_app_open(const char* name, lv_indev_t* keypad, void (*on_exit)());
 // presses ESC; the caller is responsible for the reverse slide.
 void settings_open(lv_indev_t* keypad, void (*on_exit)());
 
+// startup_anim.cpp — CRT scanline sweep (two lines from center, reveal launcher beneath)
+// parent must be the already-loaded launcher screen.
+void startup_anim_scanline_show(lv_obj_t* parent, void (*on_complete)());
+void startup_anim_scanline_deinit();
+
+// startup_anim_phosphor.cpp — phosphor warm-up (pixels ignite red, spread, heat to white)
+void startup_anim_phosphor_show(void (*on_complete)());
+void startup_anim_phosphor_deinit();
+
 } // namespace cube

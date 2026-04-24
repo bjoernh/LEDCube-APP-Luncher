@@ -157,11 +157,17 @@ void build_launcher_screen() {
 void launcher_init(IPlatform& plat) {
     g_plat = &plat;
     build_launcher_screen();
+
     lv_screen_load(g_launcher_screen);
     hue_focus_init(g_group);
+    // Pick one startup animation (comment out the other):
+    startup_anim_scanline_show(g_launcher_screen, nullptr);  // CRT scanline (center→edges)
+    // startup_anim_phosphor_show([]() {});                  // phosphor warm-up
 }
 
 void launcher_deinit() {
+    startup_anim_scanline_deinit();   // match whichever show() is active above
+    // startup_anim_phosphor_deinit();
     hue_focus_deinit();
     if (g_group) {
         lv_group_delete(g_group);

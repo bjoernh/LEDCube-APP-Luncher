@@ -7,6 +7,8 @@ add_library(cube_shared STATIC
     src/hostname_utils.cpp
     src/hue_utils.cpp
     src/settings.cpp
+    src/startup_anim.cpp
+    src/startup_anim_phosphor.cpp
 )
 
 target_include_directories(cube_shared PUBLIC include)
