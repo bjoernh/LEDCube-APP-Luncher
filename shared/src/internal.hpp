@@ -26,6 +26,12 @@ void mock_app_open(const char* name, lv_indev_t* keypad, void (*on_exit)());
 // presses ESC; the caller is responsible for the reverse slide.
 void settings_open(lv_indev_t* keypad, void (*on_exit)());
 
+// debug_screen.cpp — Debug submenu under Settings.
+void debug_open(lv_indev_t* keypad, void (*on_exit)());
+
+// info_screen.cpp — Info screen (label/value list).
+void info_open(lv_indev_t* keypad, void (*on_exit)());
+
 // startup_anim.cpp — CRT scanline sweep (two lines from center, reveal launcher beneath)
 // parent must be the already-loaded launcher screen.
 void startup_anim_scanline_show(lv_obj_t* parent, void (*on_complete)());

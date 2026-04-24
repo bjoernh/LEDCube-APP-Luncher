@@ -3,19 +3,37 @@
 #include "internal.hpp"
 
 #include <initializer_list>
-#include <cstring>
 
 namespace cube {
 
 namespace {
 
-struct SettingsEntry { const char* label; };
-constexpr SettingsEntry kEntries[] = {
-    {"INFO"},
-    {"Brightness"},
-    {"UPDATE"},
-    {"SHUTDOWN"},
-    {"RESTART"},
+enum class Kind { Info, Slider, Checkbox, Submenu, Button };
+
+// Persistent state for stateful entries — survives close/re-open of Settings.
+int  s_brightness      = 50;
+int  s_imu_sensitivity = 50;
+bool s_ap_mode         = false;
+bool s_force_1p        = false;
+
+struct SettingsEntry {
+    Kind        kind;
+    const char* label;
+    const char* slider_prefix;  // Slider only, shown while focused (e.g. "BRI..")
+    int*        slider_value;   // Slider only
+    bool*       checkbox_state; // Checkbox only
+};
+
+const SettingsEntry kEntries[] = {
+    {Kind::Info,     "INFO",       nullptr,  nullptr,             nullptr},
+    {Kind::Slider,   "BRIGHTNESS", "BRI..",  &s_brightness,       nullptr},
+    {Kind::Slider,   "IMU SENS",   "SEN..",  &s_imu_sensitivity,  nullptr},
+    {Kind::Checkbox, "AP-MODE",    nullptr,  nullptr,             &s_ap_mode},
+    {Kind::Checkbox, "FORCE 1P",   nullptr,  nullptr,             &s_force_1p},
+    {Kind::Submenu,  "DEBUG",      nullptr,  nullptr,             nullptr},
+    {Kind::Button,   "UPDATE",     nullptr,  nullptr,             nullptr},
+    {Kind::Button,   "SHUTDOWN",   nullptr,  nullptr,             nullptr},
+    {Kind::Button,   "RESTART",    nullptr,  nullptr,             nullptr},
 };
 constexpr int kEntryCount = static_cast<int>(sizeof(kEntries) / sizeof(kEntries[0]));
 
@@ -46,11 +64,37 @@ void on_item_key(lv_event_t* e) {
 void on_item_click(lv_event_t* e) {
     auto* item = static_cast<lv_obj_t*>(lv_event_get_target(e));
     auto  idx  = reinterpret_cast<intptr_t>(lv_obj_get_user_data(item));
-    mock_app_open(kEntries[idx].label, s_keypad, return_to_settings);
+    const SettingsEntry& entry = kEntries[idx];
+
+    switch (entry.kind) {
+        case Kind::Info:
+            info_open(s_keypad, return_to_settings);
+            break;
+        case Kind::Submenu:
+            debug_open(s_keypad, return_to_settings);
+            break;
+        case Kind::Checkbox: {
+            *entry.checkbox_state = !*entry.checkbox_state;
+            auto* lbl = lv_obj_get_child(item, 0);
+            if (lbl) {
+                lv_label_set_text_fmt(lbl, "%s: %s", entry.label,
+                                      *entry.checkbox_state ? "ON" : "OFF");
+            }
+            break;
+        }
+        case Kind::Button:
+            mock_app_open(entry.label, s_keypad, return_to_settings);
+            break;
+        case Kind::Slider:
+            // Sliders respond to arrow keys, not clicks.
+            break;
+    }
 }
 
-void on_brightness_event(lv_event_t* e) {
+void on_slider_event(lv_event_t* e) {
     auto* slider = static_cast<lv_obj_t*>(lv_event_get_target(e));
+    auto  idx    = reinterpret_cast<intptr_t>(lv_obj_get_user_data(slider));
+    const SettingsEntry& entry = kEntries[idx];
     auto* lbl    = lv_obj_get_child(slider, 0);
     if (!lbl) return;
 
@@ -66,25 +110,27 @@ void on_brightness_event(lv_event_t* e) {
         if (snapped > 100) snapped = 100;
 
         lv_slider_set_value(slider, snapped, LV_ANIM_OFF);
-        lv_label_set_text_fmt(lbl, "%d", snapped);
+        *entry.slider_value = snapped;
+        lv_label_set_text_fmt(lbl, "%s: %d", entry.slider_prefix, snapped);
     } else if (code == LV_EVENT_FOCUSED) {
-        lv_label_set_text_fmt(lbl, "BRI..: %d", lv_slider_get_value(slider));
+        lv_label_set_text_fmt(lbl, "%s: %d", entry.slider_prefix,
+                              lv_slider_get_value(slider));
     } else if (code == LV_EVENT_DEFOCUSED) {
-        lv_label_set_text(lbl, "BRIGHTNESS");
+        lv_label_set_text(lbl, entry.label);
     }
 }
 
 lv_obj_t* make_entry(lv_obj_t* parent, const SettingsEntry& entry, int idx) {
-    bool is_brightness = (strcmp(entry.label, "Brightness") == 0);
-    lv_obj_t* item = is_brightness ? lv_slider_create(parent) : lv_button_create(parent);
+    lv_obj_t* item = (entry.kind == Kind::Slider) ? lv_slider_create(parent)
+                                                  : lv_button_create(parent);
 
     lv_obj_set_size(item, kScreenW, kItemH);
     lv_obj_set_style_pad_all(item, 0, LV_PART_MAIN);
     lv_obj_set_style_radius(item, 0, LV_PART_MAIN);
 
-    if (is_brightness) {
+    if (entry.kind == Kind::Slider) {
         lv_slider_set_range(item, 0, 100);
-        lv_slider_set_value(item, 50, LV_ANIM_OFF);
+        lv_slider_set_value(item, *entry.slider_value, LV_ANIM_OFF);
         lv_obj_set_style_bg_color(item, lv_color_hex(0x333333), LV_PART_MAIN);
         lv_obj_set_style_bg_opa(item, LV_OPA_COVER, LV_PART_MAIN);
         lv_obj_set_style_bg_color(item, color_title(), LV_PART_INDICATOR);
@@ -95,7 +141,7 @@ lv_obj_t* make_entry(lv_obj_t* parent, const SettingsEntry& entry, int idx) {
 
     for (lv_state_t st : {LV_STATE_DEFAULT, LV_STATE_PRESSED,
                           LV_STATE_FOCUSED, LV_STATE_FOCUS_KEY}) {
-        if (!is_brightness) {
+        if (entry.kind != Kind::Slider) {
             lv_obj_set_style_bg_opa(item, LV_OPA_TRANSP, LV_PART_MAIN | st);
         }
         lv_obj_set_style_border_width(item, 0, LV_PART_MAIN | st);
@@ -117,20 +163,22 @@ lv_obj_t* make_entry(lv_obj_t* parent, const SettingsEntry& entry, int idx) {
     lv_obj_t* lbl = lv_label_create(item);
     lv_obj_set_style_text_font(lbl, &lv_font_cube_6px, LV_PART_MAIN);
     lv_obj_set_style_text_color(lbl, color_text(), LV_PART_MAIN);
-    if (is_brightness) {
-        lv_label_set_text(lbl, "BRIGHTNESS");
-    } else {
-        lv_label_set_text(lbl, entry.label);
-    }
     lv_obj_set_style_pad_all(lbl, 0, LV_PART_MAIN);
     lv_obj_set_height(lbl, kTitleH);
     lv_obj_center(lbl);
 
+    if (entry.kind == Kind::Checkbox) {
+        lv_label_set_text_fmt(lbl, "%s: %s", entry.label,
+                              *entry.checkbox_state ? "ON" : "OFF");
+    } else {
+        lv_label_set_text(lbl, entry.label);
+    }
+
     lv_obj_set_user_data(item, reinterpret_cast<void*>(static_cast<intptr_t>(idx)));
-    if (is_brightness) {
-        lv_obj_add_event_cb(item, on_brightness_event, LV_EVENT_VALUE_CHANGED, nullptr);
-        lv_obj_add_event_cb(item, on_brightness_event, LV_EVENT_FOCUSED, nullptr);
-        lv_obj_add_event_cb(item, on_brightness_event, LV_EVENT_DEFOCUSED, nullptr);
+    if (entry.kind == Kind::Slider) {
+        lv_obj_add_event_cb(item, on_slider_event, LV_EVENT_VALUE_CHANGED, nullptr);
+        lv_obj_add_event_cb(item, on_slider_event, LV_EVENT_FOCUSED,       nullptr);
+        lv_obj_add_event_cb(item, on_slider_event, LV_EVENT_DEFOCUSED,     nullptr);
     } else {
         lv_obj_add_event_cb(item, on_item_click, LV_EVENT_CLICKED, nullptr);
     }
