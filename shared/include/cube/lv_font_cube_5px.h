@@ -10,7 +10,7 @@ extern "C" {
  * wrapped as an LVGL font. Advance width is 6 px (5 px glyph + 1 px space),
  * line height is 6 px, so it drops into the launcher's 6 px title/info rows.
  *
- * Coverage: space, A-Z, a-z, 0-9, and - + . , ? ! : = '
+ * Coverage: space, A-Z, a-z, 0-9, and - + . , ? ! : = ' %
  *
  * Regenerate with: python3 tools/gen_5px_font.py
  */
