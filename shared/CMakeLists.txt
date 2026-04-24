@@ -12,6 +12,7 @@ add_library(cube_shared STATIC
     src/info_screen.cpp
     src/startup_anim.cpp
     src/startup_anim_phosphor.cpp
+    src/ui_helpers.cpp
 )
 
 target_include_directories(cube_shared PUBLIC include)

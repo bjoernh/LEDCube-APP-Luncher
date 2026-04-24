@@ -16,12 +16,7 @@ void on_key(lv_event_t* e) {
     // Tear down the mock's own group before handing control back to the
     // launcher. The launcher's on_exit callback re-attaches its own group
     // and performs the reverse slide (which auto-deletes this screen).
-    if (s_mock_group) {
-        lv_indev_set_group(s_keypad, nullptr);
-        lv_group_delete(s_mock_group);
-        s_mock_group = nullptr;
-    }
-    if (s_on_exit) s_on_exit();
+    exit_screen_group(s_mock_group, s_keypad, s_on_exit);
 }
 
 } // namespace

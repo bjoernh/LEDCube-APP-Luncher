@@ -26,12 +26,7 @@ lv_obj_t*   s_screen     = nullptr;
 lv_group_t* s_group      = nullptr;
 
 void exit_debug() {
-    if (s_group) {
-        lv_indev_set_group(s_keypad, nullptr);
-        lv_group_delete(s_group);
-        s_group = nullptr;
-    }
-    if (s_on_exit) s_on_exit();
+    exit_screen_group(s_group, s_keypad, s_on_exit);
 }
 
 void on_item_key(lv_event_t* e) {
@@ -59,31 +54,11 @@ lv_obj_t* make_entry(lv_obj_t* parent, int idx) {
     lv_obj_set_style_pad_all(item, 0, LV_PART_MAIN);
     lv_obj_set_style_radius(item, 0, LV_PART_MAIN);
 
-    for (lv_state_t st : {LV_STATE_DEFAULT, LV_STATE_PRESSED,
-                          LV_STATE_FOCUSED, LV_STATE_FOCUS_KEY}) {
-        lv_obj_set_style_bg_opa(item, LV_OPA_TRANSP, LV_PART_MAIN | st);
-        lv_obj_set_style_border_width(item, 0, LV_PART_MAIN | st);
-        lv_obj_set_style_shadow_width(item, 0, LV_PART_MAIN | st);
-        lv_obj_set_style_outline_width(item, 0, LV_PART_MAIN | st);
-        lv_obj_set_style_outline_pad(item, 0, LV_PART_MAIN | st);
-    }
-    for (lv_state_t st : {LV_STATE_FOCUSED, LV_STATE_FOCUS_KEY}) {
-        lv_obj_set_style_border_width(item, 1, LV_PART_MAIN | st);
-        lv_obj_set_style_border_color(item, color_title(), LV_PART_MAIN | st);
-        lv_obj_set_style_border_side(item,
-                                     static_cast<lv_border_side_t>(
-                                         LV_BORDER_SIDE_TOP | LV_BORDER_SIDE_BOTTOM),
-                                     LV_PART_MAIN | st);
-        lv_obj_set_style_border_opa(item, LV_OPA_COVER, LV_PART_MAIN | st);
-    }
+    remove_widget_chrome(item);
+    apply_focus_indicator(item, color_title());
     lv_obj_remove_flag(item, LV_OBJ_FLAG_SCROLLABLE);
 
-    lv_obj_t* lbl = lv_label_create(item);
-    lv_obj_set_style_text_font(lbl, &lv_font_cube_6px, LV_PART_MAIN);
-    lv_obj_set_style_text_color(lbl, color_text(), LV_PART_MAIN);
-    lv_obj_set_style_pad_all(lbl, 0, LV_PART_MAIN);
-    lv_obj_set_height(lbl, kTitleH);
-    lv_obj_center(lbl);
+    make_styled_label(item, "", color_text());
 
     lv_obj_set_user_data(item, reinterpret_cast<void*>(static_cast<intptr_t>(idx)));
     update_label(item);

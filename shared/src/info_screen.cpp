@@ -21,12 +21,7 @@ lv_obj_t*   s_screen     = nullptr;
 lv_group_t* s_group      = nullptr;
 
 void exit_info() {
-    if (s_group) {
-        lv_indev_set_group(s_keypad, nullptr);
-        lv_group_delete(s_group);
-        s_group = nullptr;
-    }
-    if (s_on_exit) s_on_exit();
+    exit_screen_group(s_group, s_keypad, s_on_exit);
 }
 
 void on_screen_key(lv_event_t* e) {
