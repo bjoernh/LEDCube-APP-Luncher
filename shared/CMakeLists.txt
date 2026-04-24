@@ -4,6 +4,7 @@ add_library(cube_shared STATIC
     src/mock_app.cpp
     src/tick_bridge.cpp
     src/lv_font_cube_6px.c
+    src/lv_font_cube_5px.c
     src/hostname_utils.cpp
     src/hue_utils.cpp
     src/settings.cpp
