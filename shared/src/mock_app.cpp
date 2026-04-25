@@ -1,5 +1,4 @@
 #include "cube/config.hpp"
-#include "cube/lv_font_cube_6px.h"
 #include "internal.hpp"
 
 namespace cube {
@@ -35,14 +34,12 @@ void mock_app_open(const char* name, lv_indev_t* keypad, void (*on_exit)()) {
 
     // App name — centered, a few pixels above middle.
     lv_obj_t* name_lbl = lv_label_create(scr);
-    lv_obj_set_style_text_font(name_lbl, &lv_font_cube_6px, LV_PART_MAIN);
     lv_obj_set_style_text_color(name_lbl, color_text(), LV_PART_MAIN);
     lv_label_set_text(name_lbl, name);
     lv_obj_align(name_lbl, LV_ALIGN_CENTER, 0, -6);
 
     // "ESC TO EXIT" hint, a row below.
     lv_obj_t* hint_lbl = lv_label_create(scr);
-    lv_obj_set_style_text_font(hint_lbl, &lv_font_cube_6px, LV_PART_MAIN);
     lv_obj_set_style_text_color(hint_lbl, color_text(), LV_PART_MAIN);
     lv_label_set_text(hint_lbl, "ESC TO EXIT");
     lv_obj_align(hint_lbl, LV_ALIGN_CENTER, 0, 6);

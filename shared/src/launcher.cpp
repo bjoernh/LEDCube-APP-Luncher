@@ -1,6 +1,5 @@
 #include "cube/launcher.hpp"
 #include "cube/config.hpp"
-#include "cube/lv_font_cube_6px.h"
 #include "cube/detail/hostname_utils.hpp"
 #include "internal.hpp"
 
@@ -85,7 +84,6 @@ void build_launcher_screen() {
     // --- Title row: blue hostname, circular scroll if overflow ---
     lv_obj_t* title = lv_label_create(scr);
     lv_obj_set_size(title, kScreenW, kTitleH);
-    lv_obj_set_style_text_font(title, &lv_font_cube_6px, LV_PART_MAIN);
     lv_obj_set_style_text_color(title, color_title(), LV_PART_MAIN);
     lv_obj_set_style_text_align(title, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
     lv_label_set_long_mode(title, LV_LABEL_LONG_SCROLL_CIRCULAR);
@@ -124,7 +122,6 @@ void build_launcher_screen() {
     lv_obj_remove_flag(info, LV_OBJ_FLAG_SCROLLABLE);
 
     lv_obj_t* battery = lv_label_create(info);
-    lv_obj_set_style_text_font(battery, &lv_font_cube_6px, LV_PART_MAIN);
     lv_obj_set_style_text_color(battery, color_info(), LV_PART_MAIN);
     char buf[8];
     lv_snprintf(buf, sizeof(buf), "%d%%", g_plat->battery_percent());

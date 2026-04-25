@@ -1,5 +1,4 @@
 #include "cube/config.hpp"
-#include "cube/lv_font_cube_6px.h"
 #include "internal.hpp"
 
 namespace cube {
@@ -38,17 +37,19 @@ lv_obj_t* make_row(lv_obj_t* parent, const InfoRow& row) {
     lv_obj_remove_flag(cell, LV_OBJ_FLAG_SCROLLABLE);
 
     lv_obj_t* lbl = lv_label_create(cell);
-    lv_obj_set_style_text_font(lbl, &lv_font_cube_6px, LV_PART_MAIN);
-    lv_obj_set_style_text_color(lbl, color_title(), LV_PART_MAIN);
-    lv_label_set_text(lbl, row.label);
+    lv_obj_set_size(lbl, kScreenW, kTitleH);
+    lv_obj_set_style_text_color(lbl, lv_color_hex(0x800080), LV_PART_MAIN);
     lv_obj_set_style_pad_all(lbl, 0, LV_PART_MAIN);
+    lv_label_set_long_mode(lbl, LV_LABEL_LONG_SCROLL_CIRCULAR);
+    lv_label_set_text(lbl, row.label);
     lv_obj_align(lbl, LV_ALIGN_TOP_MID, 0, 0);
 
     lv_obj_t* val = lv_label_create(cell);
-    lv_obj_set_style_text_font(val, &lv_font_cube_6px, LV_PART_MAIN);
+    lv_obj_set_size(val, kScreenW, kTitleH);
     lv_obj_set_style_text_color(val, color_text(), LV_PART_MAIN);
-    lv_label_set_text(val, row.value);
     lv_obj_set_style_pad_all(val, 0, LV_PART_MAIN);
+    lv_label_set_long_mode(val, LV_LABEL_LONG_SCROLL_CIRCULAR);
+    lv_label_set_text(val, row.value);
     lv_obj_align(val, LV_ALIGN_BOTTOM_MID, 0, 0);
 
     return cell;
@@ -73,9 +74,9 @@ void info_open(lv_indev_t* keypad, void (*on_exit)()) {
     // Title row
     lv_obj_t* title = lv_label_create(s_screen);
     lv_obj_set_size(title, kScreenW, kTitleH);
-    lv_obj_set_style_text_font(title, &lv_font_cube_6px, LV_PART_MAIN);
     lv_obj_set_style_text_color(title, color_title(), LV_PART_MAIN);
     lv_obj_set_style_text_align(title, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
+    lv_label_set_long_mode(title, LV_LABEL_LONG_SCROLL_CIRCULAR);
     lv_label_set_text(title, "INFO");
 
     // List container (scrollable so more entries could be added later)
@@ -84,6 +85,7 @@ void info_open(lv_indev_t* keypad, void (*on_exit)()) {
     lv_obj_set_style_bg_opa(list, LV_OPA_TRANSP, LV_PART_MAIN);
     lv_obj_set_style_border_width(list, 0, LV_PART_MAIN);
     lv_obj_set_style_pad_all(list, 0, LV_PART_MAIN);
+    lv_obj_set_style_pad_top(list, 1, LV_PART_MAIN);
     lv_obj_set_style_pad_row(list, 0, LV_PART_MAIN);
     lv_obj_set_flex_flow(list, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(list, LV_FLEX_ALIGN_START,

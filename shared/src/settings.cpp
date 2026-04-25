@@ -1,5 +1,4 @@
 #include "cube/config.hpp"
-#include "cube/lv_font_cube_6px.h"
 #include "internal.hpp"
 
 namespace cube {
@@ -178,7 +177,6 @@ void settings_open(lv_indev_t* keypad, void (*on_exit)()) {
     // Title row
     lv_obj_t* title = lv_label_create(s_screen);
     lv_obj_set_size(title, kScreenW, kTitleH);
-    lv_obj_set_style_text_font(title, &lv_font_cube_6px, LV_PART_MAIN);
     lv_obj_set_style_text_color(title, color_title(), LV_PART_MAIN);
     lv_obj_set_style_text_align(title, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
     lv_label_set_text(title, "SETTINGS");

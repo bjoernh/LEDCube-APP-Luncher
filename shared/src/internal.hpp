@@ -46,7 +46,7 @@ void startup_anim_phosphor_deinit();
 // Shared UI helpers (implementations are inline — no separate .cpp needed)
 // ---------------------------------------------------------------------------
 
-// Task A: Detach keypad from group, delete group, null it out, then call on_exit.
+// Detach keypad from group, delete group, null it out, then call on_exit.
 // Mirrors the identical exit pattern in mock_app, settings, debug, info screens.
 inline void exit_screen_group(lv_group_t*& group, lv_indev_t* keypad,
                               void (*on_exit)()) {
@@ -58,7 +58,7 @@ inline void exit_screen_group(lv_group_t*& group, lv_indev_t* keypad,
     if (on_exit) on_exit();
 }
 
-// Task B: Strip all default-theme chrome (border/shadow/outline/bg) from every
+// Strip all default-theme chrome (border/shadow/outline/bg) from every
 // LVGL widget state so buttons look plain in a pixel-art UI.
 // Pass clear_bg=false for slider items where bg_opa must stay set (slider track).
 inline void remove_widget_chrome(lv_obj_t* obj, bool clear_bg = true) {
@@ -73,7 +73,7 @@ inline void remove_widget_chrome(lv_obj_t* obj, bool clear_bg = true) {
     }
 }
 
-// Task B: Apply a 1-pixel top+bottom focus border on focused/focus-key states.
+// Apply a 1-pixel top+bottom focus border on focused/focus-key states.
 inline void apply_focus_indicator(lv_obj_t* obj, lv_color_t color) {
     for (lv_state_t st : {LV_STATE_FOCUSED, LV_STATE_FOCUS_KEY}) {
         lv_obj_set_style_border_width(obj, 1, LV_PART_MAIN | st);
@@ -86,12 +86,12 @@ inline void apply_focus_indicator(lv_obj_t* obj, lv_color_t color) {
     }
 }
 
-// Task C: Create a label with the standard item-row style (6px font, white text,
+// Create a label with the standard item-row style (white text,
 // zero padding, height=kTitleH, centered in parent).
-// Defined in ui_helpers.cpp to access kTitleH and lv_font_cube_6px.
+// Defined in ui_helpers.cpp to access kTitleH.
 lv_obj_t* make_styled_label(lv_obj_t* parent, const char* text, lv_color_t color);
 
-// Task D helpers (settings.cpp only)
+// helpers (settings.cpp only)
 // Snap a slider value to the nearest multiple of 10 with hysteresis:
 // values that landed 1 above a decade snap up; values 1 below snap down.
 // This prevents jitter when arrow-key steps straddle a decade boundary.
