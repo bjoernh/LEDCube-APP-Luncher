@@ -1,6 +1,5 @@
 #include "cube/launcher.hpp"
 #include "cube/config.hpp"
-#include "cube/lv_font_cube_6px.h"
 #include "cube/detail/hostname_utils.hpp"
 #include "internal.hpp"
 
@@ -54,35 +53,15 @@ lv_obj_t* make_list_item(lv_obj_t* parent, const AppEntry& app) {
     // bg, outline — across default/pressed/focused/focus-key so nothing
     // bleeds into the neighbouring rows (items are packed 10 px apart and
     // outlines draw OUTSIDE the object).
-    for (lv_state_t st : {LV_STATE_DEFAULT, LV_STATE_PRESSED,
-                          LV_STATE_FOCUSED, LV_STATE_FOCUS_KEY}) {
-        lv_obj_set_style_border_width(btn, 0, LV_PART_MAIN | st);
-        lv_obj_set_style_shadow_width(btn, 0, LV_PART_MAIN | st);
-        lv_obj_set_style_outline_width(btn, 0, LV_PART_MAIN | st);
-        lv_obj_set_style_outline_pad(btn, 0, LV_PART_MAIN | st);
-        lv_obj_set_style_bg_opa(btn, LV_OPA_TRANSP, LV_PART_MAIN | st);
-    }
+    remove_widget_chrome(btn);
     // Focus indicator: 1-pixel blue bars hugging top + bottom of the row.
     // Border is drawn INSIDE the object, so the bars stay within the 10 px
     // item bounds and never spill into neighbouring rows.
-    for (lv_state_t st : {LV_STATE_FOCUSED, LV_STATE_FOCUS_KEY}) {
-        lv_obj_set_style_border_width(btn, 1, LV_PART_MAIN | st);
-        lv_obj_set_style_border_color(btn, color_title(), LV_PART_MAIN | st);
-        lv_obj_set_style_border_side(btn,
-                                     static_cast<lv_border_side_t>(
-                                         LV_BORDER_SIDE_TOP | LV_BORDER_SIDE_BOTTOM),
-                                     LV_PART_MAIN | st);
-        lv_obj_set_style_border_opa(btn, LV_OPA_COVER, LV_PART_MAIN | st);
-    }
+    apply_focus_indicator(btn, color_title());
     lv_obj_remove_flag(btn, LV_OBJ_FLAG_SCROLLABLE);
 
-    lv_obj_t* lbl = lv_label_create(btn);
-    lv_obj_set_style_text_font(lbl, &lv_font_cube_6px, LV_PART_MAIN);
-    lv_obj_set_style_text_color(lbl, color_text(), LV_PART_MAIN);
-    lv_label_set_text(lbl, app.label);
-    lv_obj_set_style_pad_all(lbl, 0, LV_PART_MAIN);
-    lv_obj_set_height(lbl, kTitleH);  // kTitleH==6 == font glyph height, force symmetric gap
-    lv_obj_center(lbl);
+    // kTitleH==6 == font glyph height, force symmetric gap
+    make_styled_label(btn, app.label, color_text());
 
     lv_obj_set_user_data(btn, reinterpret_cast<void*>(static_cast<intptr_t>(app.id)));
     lv_obj_add_event_cb(btn, on_item_activate, LV_EVENT_CLICKED, nullptr);
@@ -105,7 +84,6 @@ void build_launcher_screen() {
     // --- Title row: blue hostname, circular scroll if overflow ---
     lv_obj_t* title = lv_label_create(scr);
     lv_obj_set_size(title, kScreenW, kTitleH);
-    lv_obj_set_style_text_font(title, &lv_font_cube_6px, LV_PART_MAIN);
     lv_obj_set_style_text_color(title, color_title(), LV_PART_MAIN);
     lv_obj_set_style_text_align(title, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
     lv_label_set_long_mode(title, LV_LABEL_LONG_SCROLL_CIRCULAR);
@@ -144,7 +122,6 @@ void build_launcher_screen() {
     lv_obj_remove_flag(info, LV_OBJ_FLAG_SCROLLABLE);
 
     lv_obj_t* battery = lv_label_create(info);
-    lv_obj_set_style_text_font(battery, &lv_font_cube_6px, LV_PART_MAIN);
     lv_obj_set_style_text_color(battery, color_info(), LV_PART_MAIN);
     char buf[8];
     lv_snprintf(buf, sizeof(buf), "%d%%", g_plat->battery_percent());

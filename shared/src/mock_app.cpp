@@ -1,5 +1,4 @@
 #include "cube/config.hpp"
-#include "cube/lv_font_cube_6px.h"
 #include "internal.hpp"
 
 namespace cube {
@@ -16,12 +15,7 @@ void on_key(lv_event_t* e) {
     // Tear down the mock's own group before handing control back to the
     // launcher. The launcher's on_exit callback re-attaches its own group
     // and performs the reverse slide (which auto-deletes this screen).
-    if (s_mock_group) {
-        lv_indev_set_group(s_keypad, nullptr);
-        lv_group_delete(s_mock_group);
-        s_mock_group = nullptr;
-    }
-    if (s_on_exit) s_on_exit();
+    exit_screen_group(s_mock_group, s_keypad, s_on_exit);
 }
 
 } // namespace
@@ -40,14 +34,12 @@ void mock_app_open(const char* name, lv_indev_t* keypad, void (*on_exit)()) {
 
     // App name — centered, a few pixels above middle.
     lv_obj_t* name_lbl = lv_label_create(scr);
-    lv_obj_set_style_text_font(name_lbl, &lv_font_cube_6px, LV_PART_MAIN);
     lv_obj_set_style_text_color(name_lbl, color_text(), LV_PART_MAIN);
     lv_label_set_text(name_lbl, name);
     lv_obj_align(name_lbl, LV_ALIGN_CENTER, 0, -6);
 
     // "ESC TO EXIT" hint, a row below.
     lv_obj_t* hint_lbl = lv_label_create(scr);
-    lv_obj_set_style_text_font(hint_lbl, &lv_font_cube_6px, LV_PART_MAIN);
     lv_obj_set_style_text_color(hint_lbl, color_text(), LV_PART_MAIN);
     lv_label_set_text(hint_lbl, "ESC TO EXIT");
     lv_obj_align(hint_lbl, LV_ALIGN_CENTER, 0, 6);
