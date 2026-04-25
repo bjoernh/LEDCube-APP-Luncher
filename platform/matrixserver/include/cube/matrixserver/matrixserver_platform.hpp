@@ -47,6 +47,7 @@ public:
 
     std::string hostname() override;
     int         battery_percent() override;
+    void        launch_app(const std::string& exec_path) override;
 
     // Convert the internal RGB565 framebuffer to RGB888 and push to the four
     // side screens (front=0, right=1, back=2, left=3) via Screen::setPixel.

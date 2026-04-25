@@ -30,6 +30,9 @@ public:
     // System info for the UI strip.
     virtual std::string hostname()        = 0;
     virtual int         battery_percent() = 0;
+
+    // Spawn external executable in background, return immediately, stdout/stderr discarded.
+    virtual void launch_app(const std::string& exec_path) = 0;
 };
 
 // Each platform calls this once during init, passing a function that returns

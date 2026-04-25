@@ -67,11 +67,10 @@ void on_item_click(lv_event_t* e) {
             break;
         case Kind::Checkbox: {
             *entry.checkbox_state = !*entry.checkbox_state;
-            auto* lbl = lv_obj_get_child(item, 0);
-            if (lbl) {
-                lv_label_set_text_fmt(lbl, "%s: %s", entry.label,
-                                      *entry.checkbox_state ? "ON" : "OFF");
-            }
+            lv_color_t c = *entry.checkbox_state ? lv_color_hex(0x228B22)
+                                                  : lv_color_hex(0x8B0000);
+            lv_obj_set_style_bg_color(item, c, LV_PART_MAIN);
+            lv_obj_set_style_bg_opa(item, LV_OPA_COVER, LV_PART_MAIN);
             break;
         }
         case Kind::Button:
@@ -135,16 +134,16 @@ lv_obj_t* make_entry(lv_obj_t* parent, const SettingsEntry& entry, int idx) {
     }
 
     remove_widget_chrome(item, entry.kind != Kind::Slider);
+    if (entry.kind == Kind::Checkbox) {
+        lv_color_t c = *entry.checkbox_state ? lv_color_hex(0x228B22)
+                                              : lv_color_hex(0x8B0000);
+        lv_obj_set_style_bg_color(item, c, LV_PART_MAIN);
+        lv_obj_set_style_bg_opa(item, LV_OPA_COVER, LV_PART_MAIN);
+    }
     apply_focus_indicator(item, color_title());
     lv_obj_remove_flag(item, LV_OBJ_FLAG_SCROLLABLE);
 
-    lv_obj_t* lbl = make_styled_label(item, "", color_text());
-    if (entry.kind == Kind::Checkbox) {
-        lv_label_set_text_fmt(lbl, "%s: %s", entry.label,
-                              *entry.checkbox_state ? "ON" : "OFF");
-    } else {
-        lv_label_set_text(lbl, entry.label);
-    }
+    lv_obj_t* lbl = make_styled_label(item, entry.label, color_text());
 
     lv_obj_set_user_data(item, reinterpret_cast<void*>(static_cast<intptr_t>(idx)));
     if (entry.kind == Kind::Slider) {

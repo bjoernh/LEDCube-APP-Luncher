@@ -1,6 +1,9 @@
 #include "cube/sdl/sdl_platform.hpp"
 #include "sdl_internal.hpp"
 
+#include <cstdlib>
+#include <string>
+
 namespace cube {
 
 SdlPlatform::SdlPlatform() {
@@ -45,6 +48,11 @@ std::string SdlPlatform::hostname() {
 
 int SdlPlatform::battery_percent() {
     return sdl::read_battery_percent();
+}
+
+void SdlPlatform::launch_app(const std::string& exec_path) {
+    std::string cmd = "nohup '" + exec_path + "' >/dev/null 2>&1 &";
+    (void)std::system(cmd.c_str());
 }
 
 } // namespace cube

@@ -1,9 +1,11 @@
 #include "cube/launcher.hpp"
 #include "cube/config.hpp"
+#include "cube/app_discovery.hpp"
 #include "cube/detail/hostname_utils.hpp"
 #include "internal.hpp"
 
 #include <string>
+#include <vector>
 
 namespace cube {
 
@@ -15,6 +17,11 @@ IPlatform*  g_plat            = nullptr;
 lv_obj_t*   g_launcher_screen = nullptr;
 lv_group_t* g_group           = nullptr;
 AppState    g_state           = AppState::Launcher;
+
+std::vector<DiscoveredApp> g_apps;
+std::string                g_pending_path;
+
+constexpr intptr_t kSettingsSentinel = -1;
 
 // -- State transitions ------------------------------------------------------
 
@@ -31,19 +38,25 @@ void on_item_activate(lv_event_t* e) {
     if (g_state != AppState::Launcher) return;
     auto* item = static_cast<lv_obj_t*>(lv_event_get_target(e));
     auto  id   = reinterpret_cast<intptr_t>(lv_obj_get_user_data(item));
-    if (id < 0 || id >= kAppCount) return;
 
-    hue_focus_pause();
-    g_state = AppState::InApp;
-    if (std::string_view{kApps[id].label} == "SETTINGS")
+    if (id == kSettingsSentinel) {
+        hue_focus_pause();
+        g_state = AppState::InApp;
         settings_open(g_plat->keypad(), return_to_launcher);
-    else
-        mock_app_open(kApps[id].label, g_plat->keypad(), return_to_launcher);
+        return;
+    }
+
+    if (id < 0 || static_cast<size_t>(id) >= g_apps.size()) return;
+
+    g_pending_path = g_apps[static_cast<size_t>(id)].path;
+    launch_animation_play(item, []() {
+        if (g_plat) g_plat->launch_app(g_pending_path);
+    });
 }
 
 // -- UI construction --------------------------------------------------------
 
-lv_obj_t* make_list_item(lv_obj_t* parent, const AppEntry& app) {
+lv_obj_t* make_list_item(lv_obj_t* parent, const char* label, intptr_t id) {
     // Borderless / shadowless / radiusless button — pure pixel-art look.
     lv_obj_t* btn = lv_button_create(parent);
     lv_obj_set_size(btn, kScreenW, kItemH);
@@ -61,9 +74,9 @@ lv_obj_t* make_list_item(lv_obj_t* parent, const AppEntry& app) {
     lv_obj_remove_flag(btn, LV_OBJ_FLAG_SCROLLABLE);
 
     // kTitleH==6 == font glyph height, force symmetric gap
-    make_styled_label(btn, app.label, color_text());
+    make_styled_label(btn, label, color_text());
 
-    lv_obj_set_user_data(btn, reinterpret_cast<void*>(static_cast<intptr_t>(app.id)));
+    lv_obj_set_user_data(btn, reinterpret_cast<void*>(id));
     lv_obj_add_event_cb(btn, on_item_activate, LV_EVENT_CLICKED, nullptr);
     return btn;
 }
@@ -107,10 +120,17 @@ void build_launcher_screen() {
 
     g_group = lv_group_create();
     lv_group_set_wrap(g_group, true);
-    for (const auto& app : kApps) {
-        lv_obj_t* item = make_list_item(list, app);
+
+    g_apps = discover_apps();
+    for (size_t i = 0; i < g_apps.size(); ++i) {
+        lv_obj_t* item = make_list_item(list, g_apps[i].name.c_str(),
+                                        static_cast<intptr_t>(i));
         lv_group_add_obj(g_group, item);
     }
+
+    lv_obj_t* settings_item = make_list_item(list, "SETTINGS", kSettingsSentinel);
+    lv_group_add_obj(g_group, settings_item);
+
     lv_indev_set_group(g_plat->keypad(), g_group);
 
     // --- Info row: red "100%" right-aligned ---
@@ -143,6 +163,7 @@ void launcher_init(IPlatform& plat) {
 }
 
 void launcher_deinit() {
+    launch_animation_deinit();
     startup_anim_scanline_deinit();   // match whichever show() is active above
     // startup_anim_phosphor_deinit();
     hue_focus_deinit();
@@ -154,6 +175,8 @@ void launcher_deinit() {
         lv_obj_delete(g_launcher_screen);
         g_launcher_screen = nullptr;
     }
+    g_apps.clear();
+    g_pending_path.clear();
     g_plat = nullptr;
 }
 

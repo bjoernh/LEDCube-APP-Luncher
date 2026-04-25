@@ -26,6 +26,7 @@ public:
     void          sleep_ms(uint32_t ms) override;
     std::string   hostname() override;
     int           battery_percent() override;
+    void          launch_app(const std::string& exec_path) override;
 };
 
 } // namespace cube

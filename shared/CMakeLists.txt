@@ -13,6 +13,8 @@ add_library(cube_shared STATIC
     src/startup_anim.cpp
     src/startup_anim_phosphor.cpp
     src/ui_helpers.cpp
+    src/app_discovery.cpp
+    src/launch_anim.cpp
 )
 
 target_include_directories(cube_shared PUBLIC include)

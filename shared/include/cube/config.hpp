@@ -26,17 +26,4 @@ inline constexpr uint32_t kFocusHuePeriodMs    = 4000;  // full rainbow cycle
 inline constexpr uint32_t kHueTimerPeriodMs    = 33;    // ~30 Hz update
 inline constexpr uint32_t kScreenTransitionMs  = 300;
 
-// --- App list ---
-struct AppEntry { const char* label; int id; };
-inline constexpr AppEntry kApps[] = {
-    {"SNAKE",      0},
-    {"BREAKOUT3D", 1},
-    {"PIXELFLOW",  2},
-    {"MATRIXRAIN", 3},
-    {"VOXELSAND",  4},
-    {"WATER",      5},
-    {"SETTINGS",   6},
-};
-inline constexpr int kAppCount = sizeof(kApps) / sizeof(kApps[0]);
-
 } // namespace cube

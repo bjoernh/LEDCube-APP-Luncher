@@ -42,6 +42,13 @@ void startup_anim_scanline_deinit();
 void startup_anim_phosphor_show(void (*on_complete)());
 void startup_anim_phosphor_deinit();
 
+// launch_anim.cpp — app-launch sequence: invert focused row 300 ms, then
+// reverse CRT scanline sweep to black, then on_complete().
+// Caller is responsible for whatever happens after black (typically: fire
+// IPlatform::launch_app and resume hue_focus).
+void launch_animation_play(lv_obj_t* focused_item, void (*on_complete)());
+void launch_animation_deinit();
+
 // ---------------------------------------------------------------------------
 // Shared UI helpers (implementations are inline — no separate .cpp needed)
 // ---------------------------------------------------------------------------

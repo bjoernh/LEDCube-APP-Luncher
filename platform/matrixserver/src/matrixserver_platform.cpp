@@ -4,6 +4,8 @@
 #include <memory>
 #include <vector>
 #include <chrono>
+#include <cstdlib>
+#include <string>
 #include <unistd.h>   // usleep
 
 class Screen;
@@ -69,6 +71,11 @@ int MatrixServerPlatform::battery_percent() {
 
 void MatrixServerPlatform::copy_framebuf_to_screens() {
     ms::copy_to_screens(screens_);
+}
+
+void MatrixServerPlatform::launch_app(const std::string& exec_path) {
+    std::string cmd = "nohup '" + exec_path + "' >/dev/null 2>&1 &";
+    (void)std::system(cmd.c_str());
 }
 
 } // namespace cube
